@@ -71,8 +71,11 @@
   @keyframes slideUp{from{transform:translateY(40px)}to{transform:none}}
   .modal h3{margin:0 0 4px;font-size:17px}
   .modal .close{position:absolute;top:10px;right:14px;background:#000;color:#fff;border:0;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer}
-  .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;background:#000;margin:12px 0}
-  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .gif-wrap{position:relative;width:100%;min-height:240px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#000;margin:12px 0;overflow:hidden}
+  .gif-wrap img{max-width:100%;max-height:60vh;display:block;border-radius:10px}
+  .gif-wrap .loader{color:var(--muted);font-size:13px;text-align:center;padding:30px 20px}
+  .gif-wrap .spinner{width:32px;height:32px;border:3px solid #333;border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .ext-link{display:block;text-align:center;background:var(--red);color:#fff;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:6px}
   .ext-link.alt{background:var(--panel2);border:1px solid var(--line);margin-top:8px}
 
@@ -245,11 +248,12 @@
     <button class="close" onclick="closeModal()">×</button>
     <h3 id="m-title"></h3>
     <div id="m-info" style="font-size:13px;color:var(--muted);margin-bottom:6px"></div>
-    <div class="video-wrap">
-      <iframe id="m-iframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <div class="gif-wrap" id="m-gifwrap">
+      <div class="loader" id="m-loader"><div class="spinner"></div>Cargando GIF…</div>
+      <img id="m-gif" src="" alt="" style="display:none">
     </div>
-    <a id="m-yt" class="ext-link" target="_blank" rel="noopener">▶ Buscar en YouTube</a>
-    <a id="m-gi" class="ext-link alt" target="_blank" rel="noopener">🖼 Buscar GIF en Google</a>
+    <a id="m-yt" class="ext-link" target="_blank" rel="noopener">▶ Ver video tutorial en YouTube</a>
+    <a id="m-gi" class="ext-link alt" target="_blank" rel="noopener">🔄 Buscar otro GIF</a>
   </div>
 </div>
 
@@ -506,20 +510,130 @@ document.querySelectorAll('.diet-tabs button').forEach(b=>{
   };
 });
 
-/* Modal — exercise demo */
+/* Modal — exercise demo (Giphy public beta key + Tenor fallback) */
+const GIPHY_KEY = 'dc6zaTOxFJmzC'; // public beta
+let lastQuery = '';
+let gifOffset = 0;
+
+async function loadGif(query, offset = 0){
+  const loader = document.getElementById('m-loader');
+  const img = document.getElementById('m-gif');
+  loader.style.display = 'block';
+  loader.innerHTML = '<div class="spinner"></div>Cargando GIF…';
+  img.style.display = 'none';
+
+  // Try Giphy first
+  try {
+    const r = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(query)}&limit=5&offset=${offset}&rating=pg-13&lang=es`);
+    const data = await r.json();
+    if (data.data && data.data.length > 0) {
+      const pick = data.data[offset % data.data.length] || data.data[0];
+      const url = pick.images.original.url;
+      img.onload = ()=>{ loader.style.display='none'; img.style.display='block'; };
+      img.onerror = ()=>{ tryTenor(query); };
+      img.src = url;
+      return;
+    }
+  } catch(err){}
+
+  tryTenor(query);
+}
+
+async function tryTenor(query){
+  const loader = document.getElementById('m-loader');
+  const img = document.getElementById('m-gif');
+  try {
+    const r = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ&client_key=plan_competencia&limit=3&media_filter=gif`);
+    const data = await r.json();
+    if (data.results && data.results.length > 0) {
+      img.onload = ()=>{ loader.style.display='none'; img.style.display='block'; };
+      img.src = data.results[0].media_formats.gif.url;
+      return;
+    }
+  } catch(err){}
+  loader.innerHTML = 'No se encontró GIF directo.<br><span style="font-size:11px">Usa el botón "Ver video tutorial en YouTube" abajo.</span>';
+}
+
 function openExercise(dayIdx, exIdx){
   const e = days[dayIdx].exercises[exIdx];
-  const q = encodeURIComponent(e.n + ' tutorial ejercicio');
+  const queryEs = e.n + ' ejercicio';
+  const queryEn = translateExercise(e.n);
+  lastQuery = queryEn || queryEs;
+  gifOffset = 0;
+
   document.getElementById('m-title').textContent = e.n;
   document.getElementById('m-info').innerHTML = `<span class="badge b-${e.m}">${e.m}</span> ${e.s} series × ${e.r} reps · descanso ${e.d}<br><i>${e.k}</i>`;
-  document.getElementById('m-iframe').src = `https://www.youtube.com/embed?listType=search&list=${q}`;
-  document.getElementById('m-yt').href = `https://www.youtube.com/results?search_query=${q}`;
-  document.getElementById('m-gi').href = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(e.n+' gif')}`;
+  document.getElementById('m-yt').href = `https://www.youtube.com/results?search_query=${encodeURIComponent(e.n+' tutorial')}`;
+  document.getElementById('m-gi').onclick = (ev)=>{ ev.preventDefault(); gifOffset++; loadGif(lastQuery, gifOffset); };
+  document.getElementById('m-gi').href = '#';
   document.getElementById('modal').classList.add('show');
+  loadGif(lastQuery, 0);
 }
+
+// Map Spanish names → English search terms (better GIF results)
+function translateExercise(name){
+  const map = {
+    'Press banca plano (barra)':'bench press exercise',
+    'Press inclinado 30° mancuernas':'incline dumbbell press',
+    'Fondos lastrados en paralelas':'weighted dips chest',
+    'Aperturas mancuernas plano':'dumbbell flyes',
+    'Press en máquina convergente':'machine chest press',
+    'Press cerrado en banca (barra)':'close grip bench press',
+    'Extensión polea cuerda':'tricep rope pushdown',
+    'Patada de tríceps con polea':'tricep kickback cable',
+    'Peso muerto convencional':'conventional deadlift',
+    'Dominadas lastradas (prono)':'weighted pull ups',
+    'Remo Pendlay (barra)':'pendlay row',
+    'Jalón polea agarre ancho prono':'wide grip lat pulldown',
+    'Pullover polea alta cuerda':'cable rope pullover',
+    'Remo mancuerna apoyado':'one arm dumbbell row',
+    'Curl barra EZ pesado':'ez bar curl',
+    'Curl inclinado mancuernas':'incline dumbbell curl',
+    'Curl martillo en polea cuerda':'hammer curl rope cable',
+    'Curl Scott barra EZ':'preacher curl ez bar',
+    'Sentadilla libre (barra)':'barbell back squat',
+    'Prensa de piernas pies altos':'leg press high feet',
+    'Sentadilla búlgara mancuernas':'bulgarian split squat dumbbell',
+    'Peso muerto rumano (barra)':'romanian deadlift',
+    'Curl femoral tumbado':'lying leg curl',
+    'Extensión cuádriceps':'leg extension',
+    'Hip thrust en máquina':'hip thrust machine',
+    'Elevación pantorrillas de pie':'standing calf raise',
+    'Elevación pantorrillas sentado':'seated calf raise',
+    'Press militar barra de pie':'standing barbell military press',
+    'Press Arnold mancuernas sentado':'arnold press dumbbell',
+    'Elevaciones laterales (cable)':'cable lateral raise',
+    'Pájaro mancuerna inclinado':'bent over rear delt fly',
+    'Face pull cuerda polea alta':'face pull cable',
+    'Elevación frontal disco':'plate front raise',
+    'Elevación lateral mancuerna':'dumbbell lateral raise',
+    'Encogimientos barra/mancuerna':'barbell shrug',
+    'Curl muñeca barra (pro + sup)':'wrist curl barbell',
+    'Press mancuernas inclinado 30°':'incline dumbbell bench press',
+    'Press máquina convergente':'converging chest press machine',
+    'Aperturas polea alta-baja cruzada':'cable crossover chest',
+    'Fondos peso corporal':'bodyweight dips',
+    'Pullover mancuerna en banco':'dumbbell pullover bench',
+    'Press francés EZ acostado':'lying tricep extension skull crusher',
+    'Patada con polea unilateral':'single arm tricep kickback cable',
+    'Fondos en banco (peso corporal)':'bench dips',
+    'Dominadas agarre neutro':'neutral grip pull ups',
+    'Remo polea baja agarre neutro':'seated cable row neutral grip',
+    'Pullover polea alta recto':'straight arm pulldown',
+    'Jalón polea agarre supino estrecho':'close grip underhand pulldown',
+    'Remo mancuerna apoyo pecho':'chest supported dumbbell row',
+    'Curl barra EZ método 21s':'21s bicep curl',
+    'Curl araña (spider) barra EZ':'spider curl ez bar',
+    'Curl alterno supinación':'alternating dumbbell curl',
+    'Plancha lastrada (disco)':'weighted plank',
+    'Crunch polea alta arrodillado':'cable kneeling crunch',
+  };
+  return map[name] || (name + ' exercise');
+}
+
 function closeModal(){
   document.getElementById('modal').classList.remove('show');
-  document.getElementById('m-iframe').src = '';
+  document.getElementById('m-gif').src = '';
 }
 document.getElementById('modal').addEventListener('click',e=>{
   if(e.target.id==='modal') closeModal();
