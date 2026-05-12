@@ -103,6 +103,20 @@
   .sub-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
   .sub-table th,.sub-table td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
   .sub-table th{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+
+  .cardio-opt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .cardio-head{display:flex;align-items:center;gap:8px;font-size:14px}
+  .cardio-ic{font-size:20px}
+  .cardio-desc{color:var(--muted);font-size:12.5px;margin-top:4px;line-height:1.5}
+
+  .shop-cat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .shop-cat h4{margin:0 0 8px;font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-size:11px}
+  .shop-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer;user-select:none}
+  .shop-item:last-child{border-bottom:0}
+  .shop-item .chk{width:20px;height:20px;border:2px solid var(--muted);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent}
+  .shop-item.done .chk{background:var(--green);border-color:var(--green);color:#fff}
+  .shop-item.done .name{text-decoration:line-through;color:var(--muted)}
+  .shop-item .qty{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}
 </style>
 </head>
 <body>
@@ -131,6 +145,7 @@
     <button data-diet="descanso">Descanso</button>
     <button data-diet="refeed">Refeed</button>
     <button data-diet="sustituciones">Sustituciones</button>
+    <button data-diet="compras">🛒 Lista de compras</button>
   </div>
 
   <div class="diet-panel active" id="d-entreno">
@@ -148,6 +163,16 @@
   <div class="diet-panel" id="d-refeed">
     <div class="card" style="padding:10px 14px;font-size:12px;color:var(--muted)">
       Cada 10 días · 2,400 kcal · Carbos a 320g, grasas a 40g · NO es cheat meal
+    </div>
+  </div>
+
+  <div class="diet-panel" id="d-compras">
+    <div class="card" style="padding:10px 14px;font-size:12px;color:var(--muted)">
+      Lista para <b style="color:#fff">1 semana</b> (5 días entreno + 1 descanso + 1 refeed). Cantidades aproximadas para 1 persona.
+    </div>
+    <div id="shopList"></div>
+    <div class="card" style="font-size:12px;color:var(--muted);text-align:center">
+      💡 Tip: compra el domingo, mete pollo y pescado en porciones de 180g al congelador. Cocina arroz y papa en lotes de 3 días.
     </div>
   </div>
 
@@ -263,6 +288,11 @@ const days = [
   { n:1, title:"Pecho + Tríceps", sub:"Fuerza Preservativa · 80-87% 1RM",
     protocol:"Calentamiento: 2 series al 50% + 1 al 70% antes del press banca. Activa manguito 3×15. Cardio LISS 20' post.",
     meta:"28 series · Descanso 2-2.5 min · 60-70 min",
+    cardio:{ tipo:"LISS 20 min", opciones:[
+      {ic:"🏃",t:"Trote calle",d:"20 min ritmo conversacional · FC 115-135 bpm · puedes hablar frases cortas · ruta plana"},
+      {ic:"🚴",t:"Bici estática gym",d:"20 min · resistencia media (5-7/10) · 75-85 rpm · mantén FC 115-135"},
+      {ic:"♨️",t:"Sauna (opcional)",d:"10-15 min al final · ayuda recuperación cardiovascular · hidrata con electrolitos antes y después"},
+    ]},
     exercises:[
       {n:"Press banca plano (barra)",m:"NM",s:5,r:"4-6",d:"2.5 min",k:"Arco controlado · pausa 1s en pecho · técnica perfecta"},
       {n:"Press inclinado 30° mancuernas",m:"NM",s:4,r:"6-8",d:"2 min",k:"Mayor rango que barra · enfoca clavicular alto"},
@@ -278,6 +308,11 @@ const days = [
   { n:2, title:"Espalda + Bíceps", sub:"Fuerza Preservativa · 80-87% 1RM",
     protocol:"Face-pulls 3×15 antes de empezar. Peso muerto SE MANTIENE en defi. LISS 20' bici al terminar.",
     meta:"32 series · Descanso 2-2.5 min · 70-75 min",
+    cardio:{ tipo:"LISS 20 min", opciones:[
+      {ic:"🚴",t:"Bici estática gym (recomendado hoy)",d:"20 min · resistencia 6-7/10 · 75-85 rpm · NO trote: la espalda ya está cargada del peso muerto"},
+      {ic:"🏃",t:"Trote suave calle",d:"Solo si te sientes bien · 20 min muy suave · evita impacto fuerte por carga lumbar previa"},
+      {ic:"♨️",t:"Sauna (opcional)",d:"10-15 min post-bici · ayuda a descontracturar lumbar · hidrata bien"},
+    ]},
     exercises:[
       {n:"Peso muerto convencional",m:"NM",s:4,r:"4-5",d:"2.5 min",k:"No bajes el peso · técnica perfecta · cinturón ok"},
       {n:"Dominadas lastradas (prono)",m:"NM",s:4,r:"5-7",d:"2 min",k:"Lastre 5-7kg · rango completo · barbilla supera barra"},
@@ -295,6 +330,11 @@ const days = [
   { n:3, title:"Piernas + Glúteos", sub:"Fuerza + Densidad · NO cardio post",
     protocol:"Movilidad cadera 5' + sentadillas peso corporal 2×20. HOY NO HAY CARDIO POST. Recuperación es prioridad.",
     meta:"30 series · 75-85 min",
+    cardio:{ tipo:"NO cardio · solo recuperación", opciones:[
+      {ic:"❌",t:"Sin trote, sin bici",d:"Las piernas ya quemaron 600+ kcal. Cardio post arruina la recuperación y te roba glucógeno."},
+      {ic:"♨️",t:"Sauna corta (opcional)",d:"10 min máximo · ayuda a circulación de piernas · NO más porque agrava deshidratación post-pierna"},
+      {ic:"🚶",t:"Caminata muy suave",d:"Si te sientes con energía: 10-15 min a paso lento al salir del gym, ayuda a drenar lactato"},
+    ]},
     exercises:[
       {n:"Sentadilla libre (barra)",m:"NM",s:5,r:"4-6",d:"3 min",k:"Profundidad mínima paralela · core braceado"},
       {n:"Prensa de piernas pies altos",m:"NM",s:4,r:"10-12",d:"90s",k:"Glúteo e isquio · no bloquees rodillas"},
@@ -312,6 +352,11 @@ const days = [
   { n:4, title:"Hombros + Trapecio", sub:"Metabólico · 65-72% 1RM",
     protocol:"Manguito rotador 3×15 antes. Cronometra descansos. Post-entreno: HIIT 12' (30s sprint / 90s rec × 6).",
     meta:"30 series · Descanso 45-75s · 60-65 min + HIIT",
+    cardio:{ tipo:"HIIT 12 min", opciones:[
+      {ic:"🚴",t:"Bici estática gym (HIIT)",d:"6 ciclos · 30s sprint máximo (resistencia 9-10) + 90s recuperación (resistencia 3) · total 12 min"},
+      {ic:"🏃",t:"Sprints en calle",d:"6 ciclos · 30s sprint al 90% + 90s caminata · pista plana o calle sin tráfico"},
+      {ic:"♨️",t:"Sauna post-HIIT",d:"15 min después del HIIT · sube efecto de oxidación de grasa por elevación de FC residual"},
+    ]},
     exercises:[
       {n:"Press militar barra de pie",m:"NM",s:4,r:"6-8",d:"2 min",k:"Core rígido · glúteos apretados · sin arquear"},
       {n:"Press Arnold mancuernas sentado",m:"NM",s:4,r:"10-12",d:"75s",k:"Rotación completa · supinación a pronación"},
@@ -328,6 +373,11 @@ const days = [
   { n:5, title:"Pecho + Tríceps", sub:"Metabólico + Densidad",
     protocol:"TUT 3-0-1-0 (3s baja, 0s pausa abajo, 1s sube). LISS 25' post.",
     meta:"28 series · Descanso 45-75s · 55-65 min + 25' LISS",
+    cardio:{ tipo:"LISS 25 min", opciones:[
+      {ic:"🏃",t:"Trote calle",d:"25 min ritmo conversacional · FC 115-135 bpm · plano · perfecto post-pump pectoral"},
+      {ic:"🚴",t:"Bici estática gym",d:"25 min · resistencia 5-7/10 · 75-85 rpm · puedes ver Netflix mientras"},
+      {ic:"♨️",t:"Sauna",d:"15 min al terminar · músculo bombeado responde mejor al calor · hidratación 500ml antes"},
+    ]},
     exercises:[
       {n:"Press mancuernas inclinado 30°",m:"NM",s:4,r:"10-12",d:"75s",k:"Mayor rango · enfoque clavicular"},
       {n:"Press máquina convergente",m:"NM",s:4,r:"12-15",d:"60s",k:"TUT 3-0-1-0 estricto"},
@@ -344,6 +394,11 @@ const days = [
   { n:6, title:"Espalda + Bíceps + Core", sub:"Metabólico + Densidad",
     protocol:"2 series jalón polea al 50% activando mente-músculo. HIIT 15' al terminar (30s sprint / 60s rec × 8).",
     meta:"34 series · Descanso 45-75s · 70-75 min + 15' HIIT",
+    cardio:{ tipo:"HIIT 15 min · día más demandante", opciones:[
+      {ic:"🚴",t:"Bici estática gym (HIIT)",d:"8 ciclos · 30s sprint máximo + 60s recuperación · 15 min total · resistencia alta"},
+      {ic:"🏃",t:"Sprints en calle",d:"8 ciclos · 30s sprint al 95% + 60s caminata · si tienes parque con pista, ideal"},
+      {ic:"♨️",t:"Sauna recuperadora",d:"15-20 min después · día más demandante de la semana · ayuda a bajar cortisol antes de dormir"},
+    ]},
     exercises:[
       {n:"Dominadas agarre neutro",m:"NM",s:4,r:"8-12",d:"90s",k:"Sin lastre · enfoque dorsal · rango completo"},
       {n:"Remo polea baja agarre neutro",m:"NM",s:4,r:"12-15",d:"75s",k:"Pecho fuera · codos atrás · grosor medio"},
@@ -363,6 +418,11 @@ const days = [
   { n:7, title:"Descanso Activo", sub:"Caminata 45-60' en ayunas",
     protocol:"Caminata LISS en ayunas. Único cardio del día. Foco en recuperación, sueño 8h, hidratación 3.5L.",
     meta:"Sin pesas · NEAT objetivo: 10,000-12,000 pasos",
+    cardio:{ tipo:"Cardio único del día · en ayunas", opciones:[
+      {ic:"🏃",t:"Trote suave / caminata calle",d:"45-60 min en ayunas · ritmo conversacional · café negro pre-cardio opcional · ruta con sol si hay"},
+      {ic:"🚴",t:"Bici estática gym",d:"Alternativa si llueve: 45 min · resistencia 4-5/10 · cero impacto · ideal con podcast"},
+      {ic:"♨️",t:"Sauna post-cardio",d:"15-20 min al terminar · día de recuperación · combina con estiramientos suaves"},
+    ]},
     exercises:[],
     coach:"El descanso es entrenamiento invisible. En defi, el sueño es lo único que evita la pérdida muscular. Día sagrado."
   },
@@ -424,6 +484,81 @@ const meals = {
   ],
 };
 
+/* Shopping list — calculated for 1 week */
+const shopping = [
+  { cat:"🍗 Proteínas", items:[
+    {n:"Pechuga de pollo", q:"2 kg"},
+    {n:"Pescado blanco (tilapia/merluza/corvina)", q:"1.2 kg"},
+    {n:"Atún en agua (latas 150g)", q:"5-6 latas"},
+    {n:"Carne magra 90/10 (res)", q:"500 g"},
+    {n:"Huevos enteros", q:"15-18 uds"},
+    {n:"Claras pasteurizadas", q:"1.5 L (o 30 claras)"},
+    {n:"Whey protein", q:"1 envase (rinde mes)"},
+  ]},
+  { cat:"🌾 Carbohidratos", items:[
+    {n:"Arroz blanco crudo", q:"800 g"},
+    {n:"Crema de arroz (o sustituto avena)", q:"500 g"},
+    {n:"Quinoa cruda (opcional)", q:"250 g"},
+    {n:"Papa", q:"1.5 kg"},
+    {n:"Yuca (opcional)", q:"500 g"},
+    {n:"Arroz inflado / cereal sin grasa", q:"1 caja"},
+    {n:"Tortillas de maíz (opcional)", q:"1 paquete"},
+  ]},
+  { cat:"🍌 Frutas", items:[
+    {n:"Plátanos (variados tamaños)", q:"12-14 uds"},
+    {n:"Manzanas", q:"7-8 uds"},
+    {n:"Fresas", q:"500 g"},
+    {n:"Mandarinas", q:"6 uds"},
+    {n:"Limones", q:"6 uds"},
+    {n:"Pasas (refeed)", q:"100 g"},
+  ]},
+  { cat:"🥦 Vegetales", items:[
+    {n:"Espinaca fresca", q:"1 bolsa grande"},
+    {n:"Brócoli", q:"2 piezas grandes"},
+    {n:"Espárragos (sustituto zucchini)", q:"3 manojos"},
+    {n:"Vainitas / judías verdes", q:"500 g"},
+    {n:"Coliflor", q:"1 pieza"},
+    {n:"Tomate", q:"6 uds"},
+    {n:"Pepino", q:"4 uds"},
+    {n:"Pimiento", q:"3 uds"},
+    {n:"Lechuga / mezcla ensalada", q:"2 bolsas"},
+    {n:"Apio", q:"1 manojo"},
+  ]},
+  { cat:"🥑 Grasas buenas", items:[
+    {n:"Aguacate", q:"5-6 uds"},
+    {n:"Almendras crudas", q:"150 g"},
+    {n:"Nueces mixtas", q:"150 g"},
+    {n:"Aceite de oliva extra virgen", q:"1 botella (rinde meses)"},
+    {n:"Mantequilla de almendra (opcional)", q:"1 frasco"},
+  ]},
+  { cat:"🧂 Despensa / Condimentos", items:[
+    {n:"Canela en polvo", q:"1 frasco"},
+    {n:"Sal rosa del Himalaya", q:"1 frasco"},
+    {n:"Pimienta negra", q:"1 frasco"},
+    {n:"Vinagre (manzana / blanco)", q:"1 botella"},
+    {n:"Té verde (bolsitas)", q:"1 caja"},
+    {n:"Café (sin azúcar)", q:"1 paquete"},
+    {n:"Mostaza / salsas 0 kcal", q:"1 frasco"},
+  ]},
+  { cat:"💊 Suplementos", items:[
+    {n:"Creatina monohidrato", q:"5g/día"},
+    {n:"Cafeína anhidra / pre-entreno", q:"200-300mg"},
+    {n:"Multivitamínico", q:"1 frasco"},
+    {n:"Omega-3 EPA/DHA", q:"1 frasco"},
+    {n:"Vitamina D3 3000-5000 UI", q:"1 frasco"},
+    {n:"Magnesio glicinato", q:"1 frasco"},
+    {n:"Electrolitos en sobres", q:"7-10 sobres"},
+    {n:"L-Carnitina (opcional)", q:"1 frasco"},
+  ]},
+  { cat:"❌ Lo que NO compras", items:[
+    {n:"Alcohol (cero las 12 semanas)", q:"—"},
+    {n:"Refrescos / jugos azucarados", q:"—"},
+    {n:"Snacks ultraprocesados", q:"—"},
+    {n:"Pan blanco / dulces", q:"—"},
+    {n:"BCAAs (innecesarios si comes proteína)", q:"—"},
+  ]},
+];
+
 /* ============ RENDER ============ */
 const daysGrid = document.getElementById('daysGrid');
 const dayContent = document.getElementById('dayContent');
@@ -466,8 +601,20 @@ function renderDay(d){
     });
   }
   if(d.alert) html += `<div class="alert"><b>⚠️ Señal de alarma:</b> ${d.alert}</div>`;
-  if(d.coach) html += `<div class="coachnote"><b style="color:var(--gold)">NOTA DEL COACH —</b> ${d.coach}</div>`;
   html += `</div>`;
+  if(d.cardio){
+    html += `<div class="card">
+      <h2>🫀 Cardio del día</h2>
+      <div class="meta" style="margin-bottom:10px"><b style="color:var(--red)">${d.cardio.tipo}</b></div>`;
+    d.cardio.opciones.forEach(o=>{
+      html += `<div class="cardio-opt">
+        <div class="cardio-head"><span class="cardio-ic">${o.ic}</span><b>${o.t}</b></div>
+        <div class="cardio-desc">${o.d}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  if(d.coach) html += `<div class="card"><div class="coachnote" style="margin-top:0"><b style="color:var(--gold)">NOTA DEL COACH —</b> ${d.coach}</div></div>`;
   dayContent.innerHTML = html;
 }
 renderDay(days[0]);
@@ -500,6 +647,36 @@ function renderMeals(){
   });
 }
 renderMeals();
+
+/* Shopping list render + persistence */
+function renderShopping(){
+  const cont = document.getElementById('shopList');
+  const saved = JSON.parse(localStorage.getItem('shopChecked')||'{}');
+  let html = '';
+  shopping.forEach((c,ci)=>{
+    html += `<div class="shop-cat"><h4>${c.cat}</h4>`;
+    c.items.forEach((it,ii)=>{
+      const key = ci+'_'+ii;
+      const done = saved[key] ? ' done' : '';
+      html += `<div class="shop-item${done}" data-key="${key}">
+        <div class="chk">✓</div>
+        <div class="name">${it.n}</div>
+        <div class="qty">${it.q}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('.shop-item').forEach(el=>{
+    el.onclick = ()=>{
+      el.classList.toggle('done');
+      const s = JSON.parse(localStorage.getItem('shopChecked')||'{}');
+      s[el.dataset.key] = el.classList.contains('done');
+      localStorage.setItem('shopChecked', JSON.stringify(s));
+    };
+  });
+}
+renderShopping();
 
 document.querySelectorAll('.diet-tabs button').forEach(b=>{
   b.onclick = ()=>{
