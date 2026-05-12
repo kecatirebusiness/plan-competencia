@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Programa Definición · Competencia</title>
+<style>
+  :root{
+    --bg:#0d0d0f; --panel:#161619; --panel2:#1f1f24; --line:#2a2a30;
+    --txt:#ececec; --muted:#9a9aa3;
+    --red:#e23b3b; --gold:#d4a437; --green:#5fbf6a; --blue:#4c8df6;
+    --nm:#e23b3b; --ss:#4c8df6; --ds:#d4a437; --rp:#b266ff; --myo:#ff8a3d; --gs:#5fbf6a; --fst:#37c4d4; --amrap:#e23b3b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+  body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 80px) 0;max-width:520px;margin:0 auto}
+  header{padding:18px 16px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,13,15,.92);backdrop-filter:blur(10px);z-index:50}
+  h1{margin:0;font-size:18px;letter-spacing:.5px}
+  h1 .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;letter-spacing:1.5px;text-transform:uppercase}
+  .tabs{display:flex;gap:6px;margin-top:12px}
+  .tab{flex:1;padding:10px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-weight:600;font-size:13px;text-align:center;cursor:pointer;transition:.15s}
+  .tab.active{background:var(--red);border-color:var(--red);color:#fff}
+  main{padding:14px 14px 30px}
+  section{display:none}
+  section.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* Day selector */
+  .days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+  .day{padding:10px 4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;text-align:center;cursor:pointer;font-size:12px;font-weight:600}
+  .day .n{display:block;font-size:18px;color:var(--red);font-weight:800;line-height:1}
+  .day.active{background:var(--red);border-color:var(--red);color:#fff}
+  .day.active .n{color:#fff}
+
+  /* Cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .card h2{margin:0 0 4px;font-size:16px}
+  .card .meta{color:var(--muted);font-size:12px;margin-bottom:10px}
+  .protocol{background:rgba(212,164,55,.08);border-left:3px solid var(--gold);padding:10px 12px;border-radius:6px;font-size:12.5px;color:#e9e0c4;margin-bottom:12px}
+  .coachnote{background:#000;border:1px solid var(--gold);padding:10px 12px;border-radius:8px;font-size:12px;color:#e9e0c4;margin-top:10px}
+  .alert{background:rgba(226,59,59,.08);border-left:3px solid var(--red);padding:10px 12px;border-radius:6px;font-size:12.5px;color:#f5cdcd;margin-top:10px}
+
+  /* Exercise list */
+  .ex{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .ex:last-child{border-bottom:0}
+  .ex .name{font-weight:600;font-size:14px;color:#fff;text-decoration:underline;text-decoration-color:#444;text-underline-offset:3px}
+  .ex .clave{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:3px}
+  .ex .right{flex-shrink:0;text-align:right;font-size:12px}
+  .ex .reps{color:#fff;font-weight:700}
+  .ex .desc{color:var(--muted);font-size:11px;margin-top:2px}
+  .badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;margin-right:6px;letter-spacing:.5px}
+  .b-NM{background:var(--nm);color:#fff}
+  .b-SS{background:var(--ss);color:#fff}
+  .b-DS{background:var(--ds);color:#111}
+  .b-RP{background:var(--rp);color:#fff}
+  .b-MYO{background:var(--myo);color:#111}
+  .b-GS{background:var(--gs);color:#111}
+  .b-FST{background:var(--fst);color:#111}
+  .b-AMRAP{background:var(--amrap);color:#fff}
+
+  /* Abbreviations bar (always visible bottom) */
+  .abbr{position:fixed;bottom:0;left:0;right:0;background:rgba(22,22,25,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:40}
+  .abbr-inner{max-width:520px;margin:0 auto;display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+  .abbr span{font-size:10px;color:var(--muted);padding:3px 5px}
+  .abbr b{color:#fff;font-weight:800;margin-right:3px}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:0}
+  .modal.show{display:flex;animation:fade .2s}
+  .modal-inner{background:var(--panel);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px;max-height:88vh;overflow-y:auto;animation:slideUp .25s}
+  @keyframes slideUp{from{transform:translateY(40px)}to{transform:none}}
+  .modal h3{margin:0 0 4px;font-size:17px}
+  .modal .close{position:absolute;top:10px;right:14px;background:#000;color:#fff;border:0;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer}
+  .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;background:#000;margin:12px 0}
+  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ext-link{display:block;text-align:center;background:var(--red);color:#fff;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:6px}
+  .ext-link.alt{background:var(--panel2);border:1px solid var(--line);margin-top:8px}
+
+  /* Diet */
+  .meal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .meal .hour{color:var(--red);font-size:11px;font-weight:800;letter-spacing:1px}
+  .meal h4{margin:2px 0 6px;font-size:15px}
+  .meal .food{font-size:13.5px;line-height:1.55}
+  .meal .food b{color:#fff}
+  .meal .macro{margin-top:8px;font-size:11.5px;color:#fff;background:#000;display:inline-block;padding:4px 8px;border-radius:6px;font-weight:700}
+  .swap{margin-top:8px;font-size:11.5px;color:#9fdfa6;background:rgba(95,191,106,.08);border-left:3px solid var(--green);padding:6px 8px;border-radius:4px}
+  .swap b{color:var(--green)}
+
+  .diet-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .diet-tabs button{flex:0 0 auto;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:20px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .diet-tabs button.active{background:#fff;color:#000;border-color:#fff}
+  .diet-panel{display:none}
+  .diet-panel.active{display:block;animation:fade .25s}
+
+  .totals{background:#000;border:1px solid var(--gold);padding:12px;border-radius:10px;text-align:center;margin-top:8px}
+  .totals .big{font-size:22px;font-weight:800;color:var(--gold)}
+  .totals .row{display:flex;justify-content:space-around;margin-top:8px;font-size:12px;color:var(--muted)}
+  .totals .row b{color:#fff;display:block;font-size:14px}
+
+  .sub-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  .sub-table th,.sub-table td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  .sub-table th{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PROGRAMA DEFINICIÓN<span class="sub">Nivel Competencia · 12 Semanas · 6 Días</span></h1>
+  <div class="tabs">
+    <div class="tab active" data-tab="entreno">🏋️ Entreno</div>
+    <div class="tab" data-tab="dieta">🥗 Alimentación</div>
+    <div class="tab" data-tab="info">📋 Info</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ ENTRENO ============ -->
+<section id="entreno" class="active">
+  <div class="days" id="daysGrid"></div>
+  <div id="dayContent"></div>
+</section>
+
+<!-- ============ DIETA ============ -->
+<section id="dieta">
+  <div class="diet-tabs">
+    <button class="active" data-diet="entreno">Día Entreno</button>
+    <button data-diet="descanso">Descanso</button>
+    <button data-diet="refeed">Refeed</button>
+    <button data-diet="sustituciones">Sustituciones</button>
+  </div>
+
+  <div class="diet-panel active" id="d-entreno">
+    <div class="card" style="padding:10px 14px;font-size:12px;color:var(--muted)">
+      1,800 kcal · 5 comidas · P 184g · C 197g · G 37g
+    </div>
+  </div>
+
+  <div class="diet-panel" id="d-descanso">
+    <div class="card" style="padding:10px 14px;font-size:12px;color:var(--muted)">
+      D7 · 1,580 kcal · P 146g · C 100g · G 67g · Bajan carbos, suben grasas
+    </div>
+  </div>
+
+  <div class="diet-panel" id="d-refeed">
+    <div class="card" style="padding:10px 14px;font-size:12px;color:var(--muted)">
+      Cada 10 días · 2,400 kcal · Carbos a 320g, grasas a 40g · NO es cheat meal
+    </div>
+  </div>
+
+  <div class="diet-panel" id="d-sustituciones">
+    <div class="card">
+      <h2 style="font-size:15px">Sustituciones 1:1 (mismas macros)</h2>
+      <table class="sub-table">
+        <tr><th>Categoría</th><th>Equivalencias</th></tr>
+        <tr><td><b>Proteína magra</b></td><td>180g pollo = 180g pavo = 180g atún lata = 180g pescado blanco = 150g res 95/5 = 200g claras + 1 yema</td></tr>
+        <tr><td><b>Carbos complejos</b></td><td>150g arroz cocido = 100g pasta cocida = 80g crema de arroz cruda = 80g quinoa cruda = 4 tortillas de maíz = 150g papa cocida = 150g yuca cocida</td></tr>
+        <tr><td><b>Carbos rápidos</b></td><td>1 plátano = 1 manzana = 1 taza fresas + 1 mandarina = 30g pasas = 1 dátil grande + 1 manzana</td></tr>
+        <tr><td><b>Grasas buenas</b></td><td>40g aguacate = 15g nueces = 15g almendras = 1 cdita aceite oliva = 12g mantequilla almendra</td></tr>
+        <tr><td><b>Vegetales libres</b></td><td>Sin límite: lechuga, espinaca, pepino, apio, brócoli, espárragos, vainitas, coliflor, pimiento, tomate</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INFO ============ -->
+<section id="info">
+  <div class="card">
+    <h2>Filosofía</h2>
+    <p style="font-size:13px;color:#d0d0d0">La definición de competencia NO es perder peso. Es retener cada gramo de músculo construido mientras eliminas grasa subcutánea hasta 6-8%. <b>Si pierdes fuerza, pierdes músculo.</b></p>
+  </div>
+  <div class="card">
+    <h2>Estructura semanal</h2>
+    <table class="sub-table">
+      <tr><th>Día</th><th>Sesión</th><th>Cardio</th></tr>
+      <tr><td>1</td><td>Pecho + Tríceps · Fuerza</td><td>LISS 20'</td></tr>
+      <tr><td>2</td><td>Espalda + Bíceps · Fuerza</td><td>LISS 20'</td></tr>
+      <tr><td>3</td><td>Piernas + Glúteos</td><td>—</td></tr>
+      <tr><td>4</td><td>Hombros · Metabólico</td><td>HIIT 12'</td></tr>
+      <tr><td>5</td><td>Pecho + Tríceps · Metab.</td><td>LISS 25'</td></tr>
+      <tr><td>6</td><td>Espalda + Bíceps + Core</td><td>HIIT 15'</td></tr>
+      <tr><td>7</td><td>Descanso activo</td><td>Caminata 45-60'</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Macros (día entreno)</h2>
+    <div class="totals">
+      <div class="big">1,800 kcal</div>
+      <div class="row">
+        <div><b>165g</b>Proteína</div>
+        <div><b>180g</b>Carbos</div>
+        <div><b>45g</b>Grasas</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>10 reglas no negociables</h2>
+    <ol style="padding-left:18px;font-size:13px;line-height:1.7;color:#d0d0d0">
+      <li>Pesarse 1×/sem (sábado AM ayunas)</li>
+      <li>Foto frontal + lateral cada lunes</li>
+      <li>Medir cintura/cadera cada 2 semanas</li>
+      <li>Si no bajas 200-400g/sem → baja 100 kcal o +10' cardio</li>
+      <li>Si bajas +800g/sem → sube 150 kcal</li>
+      <li>CERO alcohol las 12 semanas</li>
+      <li>Sueño 8h (mínimo 7h)</li>
+      <li>Hidratación 3-3.5L/día</li>
+      <li>Cardio SIEMPRE después de pesas</li>
+      <li>La fuerza es tu termómetro (mantener 90-95%)</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>Suplementación</h2>
+    <table class="sub-table">
+      <tr><td><b>Creatina</b></td><td>5g/día</td></tr>
+      <tr><td><b>Whey</b></td><td>1-2 scoops post-entreno</td></tr>
+      <tr><td><b>Cafeína</b></td><td>200-300mg pre-entreno</td></tr>
+      <tr><td><b>Multivit</b></td><td>1 tab desayuno</td></tr>
+      <tr><td><b>Omega-3</b></td><td>2-3g con comidas</td></tr>
+      <tr><td><b>Vit D3</b></td><td>3000-5000 UI</td></tr>
+      <tr><td><b>Magnesio</b></td><td>300-400mg antes dormir</td></tr>
+      <tr><td><b>Electrolitos</b></td><td>1 sobre durante cardio</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<!-- Abbreviations always visible -->
+<div class="abbr">
+  <div class="abbr-inner">
+    <span><b style="color:var(--nm)">NM</b>Normal</span>
+    <span><b style="color:var(--ss)">SS</b>Superset</span>
+    <span><b style="color:var(--ds)">DS</b>Drop Set</span>
+    <span><b style="color:var(--rp)">RP</b>Rest-Pause</span>
+    <span><b style="color:var(--myo)">MYO</b>Myo-Reps</span>
+    <span><b style="color:var(--gs)">GS</b>Giant Set</span>
+    <span><b style="color:var(--fst)">FST</b>Fascia</span>
+    <span><b style="color:var(--amrap)">AMRAP</b>al fallo</span>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-inner">
+    <button class="close" onclick="closeModal()">×</button>
+    <h3 id="m-title"></h3>
+    <div id="m-info" style="font-size:13px;color:var(--muted);margin-bottom:6px"></div>
+    <div class="video-wrap">
+      <iframe id="m-iframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    </div>
+    <a id="m-yt" class="ext-link" target="_blank" rel="noopener">▶ Buscar en YouTube</a>
+    <a id="m-gi" class="ext-link alt" target="_blank" rel="noopener">🖼 Buscar GIF en Google</a>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const days = [
+  { n:1, title:"Pecho + Tríceps", sub:"Fuerza Preservativa · 80-87% 1RM",
+    protocol:"Calentamiento: 2 series al 50% + 1 al 70% antes del press banca. Activa manguito 3×15. Cardio LISS 20' post.",
+    meta:"28 series · Descanso 2-2.5 min · 60-70 min",
+    exercises:[
+      {n:"Press banca plano (barra)",m:"NM",s:5,r:"4-6",d:"2.5 min",k:"Arco controlado · pausa 1s en pecho · técnica perfecta"},
+      {n:"Press inclinado 30° mancuernas",m:"NM",s:4,r:"6-8",d:"2 min",k:"Mayor rango que barra · enfoca clavicular alto"},
+      {n:"Fondos lastrados en paralelas",m:"NM",s:4,r:"6-8",d:"2 min",k:"Inclinado al frente · pectoral inferior y tríceps"},
+      {n:"Aperturas mancuernas plano",m:"SS",s:3,r:"10-12",d:"15s",k:"Superset con siguiente · codos semiflexos"},
+      {n:"Press en máquina convergente",m:"SS",s:3,r:"10-12",d:"75s",k:"Pre-fatiga + post-fatiga · pump pectoral final"},
+      {n:"Press cerrado en banca (barra)",m:"NM",s:4,r:"6-8",d:"2 min",k:"Codos pegados · tríceps medial"},
+      {n:"Extensión polea cuerda",m:"RP",s:3,r:"10+5+5",d:"75s",k:"Rest-pause · pausa 15s · separa cuerda al final"},
+      {n:"Patada de tríceps con polea",m:"MYO",s:2,r:"12 + Myo",d:"60s",k:"Aprieta 1s arriba · porción larga aislada"},
+    ],
+    coach:"En defi nunca llegues al fallo absoluto en compuestos. Deja RIR 1-2. El pecho es el primer músculo que se pierde — protégelo con fuerza."
+  },
+  { n:2, title:"Espalda + Bíceps", sub:"Fuerza Preservativa · 80-87% 1RM",
+    protocol:"Face-pulls 3×15 antes de empezar. Peso muerto SE MANTIENE en defi. LISS 20' bici al terminar.",
+    meta:"32 series · Descanso 2-2.5 min · 70-75 min",
+    exercises:[
+      {n:"Peso muerto convencional",m:"NM",s:4,r:"4-5",d:"2.5 min",k:"No bajes el peso · técnica perfecta · cinturón ok"},
+      {n:"Dominadas lastradas (prono)",m:"NM",s:4,r:"5-7",d:"2 min",k:"Lastre 5-7kg · rango completo · barbilla supera barra"},
+      {n:"Remo Pendlay (barra)",m:"NM",s:4,r:"6-8",d:"2 min",k:"Explosivo · espalda paralela · jalón al ombligo"},
+      {n:"Jalón polea agarre ancho prono",m:"SS",s:3,r:"10-12",d:"15s",k:"Superset · codos al suelo"},
+      {n:"Pullover polea alta cuerda",m:"SS",s:3,r:"12-15",d:"75s",k:"Aísla dorsal sin bíceps · brazos rectos"},
+      {n:"Remo mancuerna apoyado",m:"NM",s:3,r:"8-10",d:"90s",k:"Sin rotar cadera · puro dorsal medio"},
+      {n:"Curl barra EZ pesado",m:"NM",s:4,r:"6-8",d:"90s",k:"Mantén la fuerza · sin momentum · supina arriba"},
+      {n:"Curl inclinado mancuernas",m:"NM",s:3,r:"10-12",d:"75s",k:"Estira bíceps largo · codos detrás del cuerpo"},
+      {n:"Curl martillo en polea cuerda",m:"SS",s:3,r:"12-15",d:"15s",k:"Superset · braquial + braquiorradial"},
+      {n:"Curl Scott barra EZ",m:"DS",s:3,r:"10+8+6",d:"75s",k:"Drop set · pico máximo bíceps corto"},
+    ],
+    coach:"El peso muerto NO se negocia ni en defi profunda. La espalda en defi es la pieza más espectacular del físico."
+  },
+  { n:3, title:"Piernas + Glúteos", sub:"Fuerza + Densidad · NO cardio post",
+    protocol:"Movilidad cadera 5' + sentadillas peso corporal 2×20. HOY NO HAY CARDIO POST. Recuperación es prioridad.",
+    meta:"30 series · 75-85 min",
+    exercises:[
+      {n:"Sentadilla libre (barra)",m:"NM",s:5,r:"4-6",d:"3 min",k:"Profundidad mínima paralela · core braceado"},
+      {n:"Prensa de piernas pies altos",m:"NM",s:4,r:"10-12",d:"90s",k:"Glúteo e isquio · no bloquees rodillas"},
+      {n:"Sentadilla búlgara mancuernas",m:"NM",s:3,r:"10/lado",d:"90s",k:"Torso inclinado · cuádriceps · brutal"},
+      {n:"Peso muerto rumano (barra)",m:"NM",s:4,r:"8-10",d:"2 min",k:"Bisagra pura · isquios estirados · glúteo arriba"},
+      {n:"Curl femoral tumbado",m:"MYO",s:3,r:"12 + Myo",d:"75s",k:"Clusters de 4 reps · separación isquio"},
+      {n:"Extensión cuádriceps",m:"DS",s:3,r:"12+8+5",d:"75s",k:"Triple drop · baja 20% por caída"},
+      {n:"Hip thrust en máquina",m:"NM",s:3,r:"12-15",d:"60s",k:"Pausa 2s arriba · glúteo apretado"},
+      {n:"Elevación pantorrillas de pie",m:"SS",s:3,r:"15-20",d:"15s",k:"Superset gemelo · pausa 2s arriba"},
+      {n:"Elevación pantorrillas sentado",m:"SS",s:3,r:"20-25",d:"60s",k:"Sóleo profundo · ritmo lento"},
+    ],
+    alert:"Si después sientes mareo, náusea o frío extremo: 30-40g carbos rápidos inmediato (fruta/gummies).",
+    coach:"Es normal rendir 10-15% menos que en masa. Completar las series, no batir récords. Piernas = 50% del puntaje en tarima."
+  },
+  { n:4, title:"Hombros + Trapecio", sub:"Metabólico · 65-72% 1RM",
+    protocol:"Manguito rotador 3×15 antes. Cronometra descansos. Post-entreno: HIIT 12' (30s sprint / 90s rec × 6).",
+    meta:"30 series · Descanso 45-75s · 60-65 min + HIIT",
+    exercises:[
+      {n:"Press militar barra de pie",m:"NM",s:4,r:"6-8",d:"2 min",k:"Core rígido · glúteos apretados · sin arquear"},
+      {n:"Press Arnold mancuernas sentado",m:"NM",s:4,r:"10-12",d:"75s",k:"Rotación completa · supinación a pronación"},
+      {n:"Elevaciones laterales (cable)",m:"MYO",s:4,r:"15 + Myo",d:"60s",k:"Tensión constante · clusters de 5 reps"},
+      {n:"Pájaro mancuerna inclinado",m:"SS",s:3,r:"12-15",d:"15s",k:"Superset · deltoide posterior"},
+      {n:"Face pull cuerda polea alta",m:"SS",s:3,r:"15-20",d:"60s",k:"Salud manguito + trapecio medio"},
+      {n:"Elevación frontal disco",m:"NM",s:3,r:"12-15",d:"60s",k:"Deltoide anterior · sin balanceo"},
+      {n:"Elevación lateral mancuerna",m:"DS",s:3,r:"12+8+6",d:"60s",k:"Drop set · finisher deltoide medio"},
+      {n:"Encogimientos barra/mancuerna",m:"NM",s:4,r:"12-15",d:"60s",k:"Pausa 2s arriba · trapecio superior"},
+      {n:"Curl muñeca barra (pro+sup)",m:"SS",s:2,r:"15+15",d:"45s",k:"Superset ambos ángulos · antebrazo"},
+    ],
+    coach:"Los hombros 3D son el diferenciador estético #1. Crean ilusión óptica de cintura más pequeña. Vas a ver separación en semana 6."
+  },
+  { n:5, title:"Pecho + Tríceps", sub:"Metabólico + Densidad",
+    protocol:"TUT 3-0-1-0 (3s baja, 0s pausa abajo, 1s sube). LISS 25' post.",
+    meta:"28 series · Descanso 45-75s · 55-65 min + 25' LISS",
+    exercises:[
+      {n:"Press mancuernas inclinado 30°",m:"NM",s:4,r:"10-12",d:"75s",k:"Mayor rango · enfoque clavicular"},
+      {n:"Press máquina convergente",m:"NM",s:4,r:"12-15",d:"60s",k:"TUT 3-0-1-0 estricto"},
+      {n:"Aperturas polea alta-baja cruzada",m:"SS",s:3,r:"12+12",d:"15s",k:"Superset · alto + bajo"},
+      {n:"Fondos peso corporal",m:"SS",s:3,r:"AMRAP",d:"60s",k:"Inclinado al frente · al fallo limpio"},
+      {n:"Pullover mancuerna en banco",m:"NM",s:3,r:"12-15",d:"60s",k:"Expande caja torácica · estira pectoral"},
+      {n:"Press francés EZ acostado",m:"NM",s:4,r:"10-12",d:"60s",k:"Codos fijos al techo · porción larga"},
+      {n:"Extensión polea cuerda",m:"SS",s:3,r:"12-15",d:"15s",k:"Superset · separa cuerda al final"},
+      {n:"Patada con polea unilateral",m:"SS",s:3,r:"15/lado",d:"60s",k:"Aprieta 1s arriba · porción larga"},
+      {n:"Fondos en banco (peso corporal)",m:"DS",s:1,r:"AMRAP×2",d:"30s",k:"Finisher · al fallo · 30s · al fallo"},
+    ],
+    coach:"NO buscas levantar más peso. Buscas sentir el músculo trabajar cada milímetro. Conexión mente-músculo > peso."
+  },
+  { n:6, title:"Espalda + Bíceps + Core", sub:"Metabólico + Densidad",
+    protocol:"2 series jalón polea al 50% activando mente-músculo. HIIT 15' al terminar (30s sprint / 60s rec × 8).",
+    meta:"34 series · Descanso 45-75s · 70-75 min + 15' HIIT",
+    exercises:[
+      {n:"Dominadas agarre neutro",m:"NM",s:4,r:"8-12",d:"90s",k:"Sin lastre · enfoque dorsal · rango completo"},
+      {n:"Remo polea baja agarre neutro",m:"NM",s:4,r:"12-15",d:"75s",k:"Pecho fuera · codos atrás · grosor medio"},
+      {n:"Pullover polea alta recto",m:"SS",s:3,r:"15",d:"15s",k:"Superset · estira dorsal · concentra abajo"},
+      {n:"Jalón polea supino estrecho",m:"SS",s:3,r:"12-15",d:"75s",k:"Bíceps + dorsal inferior"},
+      {n:"Remo mancuerna apoyo pecho",m:"NM",s:3,r:"12-15",d:"60s",k:"Elimina trampeo · puro dorsal medio"},
+      {n:"Face pull cuerda polea alta",m:"NM",s:3,r:"15-20",d:"60s",k:"Postura · trapecio medio · finisher"},
+      {n:"Curl barra EZ método 21s",m:"NM",s:3,r:"21",d:"75s",k:"7 bajos + 7 altos + 7 completos · sin parar"},
+      {n:"Curl martillo en polea cuerda",m:"MYO",s:3,r:"12 + Myo",d:"60s",k:"Cable · tensión constante · peak bíceps"},
+      {n:"Curl araña (spider) barra EZ",m:"NM",s:3,r:"10-12",d:"60s",k:"Pecho en banco inclinado invertido"},
+      {n:"Curl alterno supinación",m:"DS",s:2,r:"10+6/lado",d:"60s",k:"Drop · supina exagerado · bíceps largo"},
+      {n:"Plancha lastrada (disco)",m:"NM",s:3,r:"45-60s",d:"45s",k:"Anti-extensión · core comprimido"},
+      {n:"Crunch polea alta arrodillado",m:"NM",s:3,r:"15-20",d:"45s",k:"Codos a rodillas · contrae 1s abajo"},
+    ],
+    coach:"La espalda en defi es arte puro. Semana 8 vas a ver surco vertebral profundo y separación con redondo mayor. El abdomen aparece solo cuando baja la grasa — la dieta es el pastel."
+  },
+  { n:7, title:"Descanso Activo", sub:"Caminata 45-60' en ayunas",
+    protocol:"Caminata LISS en ayunas. Único cardio del día. Foco en recuperación, sueño 8h, hidratación 3.5L.",
+    meta:"Sin pesas · NEAT objetivo: 10,000-12,000 pasos",
+    exercises:[],
+    coach:"El descanso es entrenamiento invisible. En defi, el sueño es lo único que evita la pérdida muscular. Día sagrado."
+  },
+];
+
+/* Meals — with substitutions for avena, batata, zucchini */
+const meals = {
+  entreno: [
+    { h:"7:00 AM", n:"Comida 1 · Desayuno",
+      f:"<b>4 claras + 2 huevos enteros</b> revueltos con espinaca y tomate · <b>80g crema de arroz cruda</b> cocida en agua con canela · <b>1 plátano pequeño</b>",
+      macro:"480 kcal · P 38g · C 65g · G 10g",
+      swap:"Sustituido avena → <b>crema de arroz</b> (también vale: 80g quinoa cruda, 100g pasta avena sin gluten, 60g arroz inflado + claras extra)" },
+    { h:"10:30 AM", n:"Comida 2 · Media mañana",
+      f:"<b>180g pechuga pollo</b> a la plancha · <b>150g arroz blanco cocido</b> · ensalada verde con pepino, vinagre y 1 cdita aceite oliva",
+      macro:"420 kcal · P 42g · C 45g · G 8g" },
+    { h:"3:00 PM", n:"Comida 3 · Pre-entreno",
+      f:"<b>150g atún en agua</b> escurrido · <b>150g arroz blanco cocido</b> · <b>1 manzana</b> · espárragos al vapor",
+      macro:"340 kcal · P 38g · C 45g · G 3g",
+      swap:"Sustituido batata cocida → <b>arroz blanco</b> (también vale: 150g papa cocida, 150g yuca cocida)" },
+    { h:"6:00 PM", n:"Comida 4 · Post-entreno",
+      f:"<b>1 scoop whey proteína (25g)</b> en agua · <b>1 plátano grande</b> · 5g creatina mezclada",
+      macro:"240 kcal · P 28g · C 30g · G 2g" },
+    { h:"8:30 PM", n:"Comida 5 · Cena",
+      f:"<b>180g pescado blanco</b> (tilapia/merluza/corvina) al horno · <b>200g brócoli + espárragos</b> al vapor · <b>40g aguacate</b> · limón y pimienta",
+      macro:"320 kcal · P 38g · C 12g · G 14g",
+      swap:"Sustituido zucchini → <b>espárragos</b> (también vale: vainitas/judías verdes, coliflor, pimiento asado)" },
+  ],
+  descanso: [
+    { h:"8:00 AM", n:"Desayuno",
+      f:"<b>4 claras + 2 huevos enteros</b> · <b>50g quinoa cruda</b> con canela · 1 puñado almendras (15g)",
+      macro:"420 kcal · P 32g · C 38g · G 17g",
+      swap:"Sustituido avena → <b>quinoa</b> (también: crema de arroz, arroz inflado)" },
+    { h:"12:30 PM", n:"Almuerzo",
+      f:"<b>180g pollo</b> a la plancha · 200g ensalada mixta · <b>60g aguacate</b> · aceite oliva 1 cdita",
+      macro:"380 kcal · P 42g · C 12g · G 18g" },
+    { h:"4:00 PM", n:"Merienda",
+      f:"<b>1 scoop whey</b> con agua · 25g nueces mixtas · 1 manzana",
+      macro:"300 kcal · P 28g · C 22g · G 14g" },
+    { h:"7:30 PM", n:"Cena",
+      f:"<b>180g pescado blanco</b> o 180g carne magra 90/10 · 250g vegetales al vapor (brócoli, espárragos, coliflor) · <b>120g papa cocida</b>",
+      macro:"480 kcal · P 44g · C 28g · G 18g",
+      swap:"Sustituido batata → <b>papa cocida</b> (también: 150g arroz blanco, 150g yuca)" },
+  ],
+  refeed: [
+    { h:"Desayuno", n:"Refeed Comida 1",
+      f:"<b>5 claras + 2 huevos</b> · <b>100g crema de arroz cruda</b> · 1 plátano · 50g pasas",
+      macro:"P 38g · C 95g · G 10g",
+      swap:"Sustituido avena → <b>crema de arroz</b> o 100g quinoa cruda" },
+    { h:"Almuerzo", n:"Refeed Comida 2",
+      f:"<b>180g pollo</b> · <b>250g arroz blanco cocido</b> · vegetales · sin grasa añadida",
+      macro:"P 45g · C 85g · G 5g" },
+    { h:"Pre/Post", n:"Refeed Intra",
+      f:"<b>1 scoop whey</b> · 2 plátanos · 50g arroz inflado o cereal sin grasa",
+      macro:"P 30g · C 90g · G 2g" },
+    { h:"Cena", n:"Refeed Comida 4",
+      f:"<b>180g pescado blanco</b> · <b>200g papa cocida</b> · 200g vegetales · 1 cdita aceite",
+      macro:"P 42g · C 55g · G 8g",
+      swap:"Sustituido batata → <b>papa cocida</b> (o 250g arroz blanco)" },
+  ],
+};
+
+/* ============ RENDER ============ */
+const daysGrid = document.getElementById('daysGrid');
+const dayContent = document.getElementById('dayContent');
+const labels = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+
+days.forEach((d,i)=>{
+  const el = document.createElement('div');
+  el.className = 'day' + (i===0?' active':'');
+  el.dataset.idx = i;
+  el.innerHTML = `<span class="n">D${d.n}</span>${labels[i]}`;
+  el.onclick = ()=>selectDay(i);
+  daysGrid.appendChild(el);
+});
+
+function selectDay(i){
+  document.querySelectorAll('.day').forEach((el,j)=>el.classList.toggle('active',j===i));
+  renderDay(days[i]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderDay(d){
+  let html = `<div class="card">
+    <h2>Día ${d.n} — ${d.title}</h2>
+    <div class="meta">${d.sub}</div>
+    <div class="protocol"><b>PROTOCOLO:</b> ${d.protocol}</div>
+    <div class="meta" style="margin:0 0 6px"><b style="color:#fff">${d.meta}</b></div>`;
+  if(d.exercises.length){
+    d.exercises.forEach((e,idx)=>{
+      html += `<div class="ex" onclick="openExercise(${days.indexOf(d)},${idx})">
+        <div style="flex:1">
+          <span class="badge b-${e.m}">${e.m}</span>
+          <span class="name">${e.n}</span>
+          <div class="clave">${e.k}</div>
+        </div>
+        <div class="right">
+          <div class="reps">${e.s}×${e.r}</div>
+          <div class="desc">${e.d}</div>
+        </div>
+      </div>`;
+    });
+  }
+  if(d.alert) html += `<div class="alert"><b>⚠️ Señal de alarma:</b> ${d.alert}</div>`;
+  if(d.coach) html += `<div class="coachnote"><b style="color:var(--gold)">NOTA DEL COACH —</b> ${d.coach}</div>`;
+  html += `</div>`;
+  dayContent.innerHTML = html;
+}
+renderDay(days[0]);
+
+/* Tabs main */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('main > section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(t.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+
+/* Diet tabs */
+function renderMeals(){
+  Object.keys(meals).forEach(key=>{
+    const panel = document.getElementById('d-'+key);
+    meals[key].forEach(m=>{
+      const div = document.createElement('div');
+      div.className = 'meal';
+      div.innerHTML = `<div class="hour">${m.h}</div>
+        <h4>${m.n}</h4>
+        <div class="food">${m.f}</div>
+        <div class="macro">${m.macro}</div>
+        ${m.swap?`<div class="swap"><b>✓ Sustitución:</b> ${m.swap}</div>`:''}`;
+      panel.appendChild(div);
+    });
+  });
+}
+renderMeals();
+
+document.querySelectorAll('.diet-tabs button').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('.diet-tabs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.diet-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('d-'+b.dataset.diet).classList.add('active');
+  };
+});
+
+/* Modal — exercise demo */
+function openExercise(dayIdx, exIdx){
+  const e = days[dayIdx].exercises[exIdx];
+  const q = encodeURIComponent(e.n + ' tutorial ejercicio');
+  document.getElementById('m-title').textContent = e.n;
+  document.getElementById('m-info').innerHTML = `<span class="badge b-${e.m}">${e.m}</span> ${e.s} series × ${e.r} reps · descanso ${e.d}<br><i>${e.k}</i>`;
+  document.getElementById('m-iframe').src = `https://www.youtube.com/embed?listType=search&list=${q}`;
+  document.getElementById('m-yt').href = `https://www.youtube.com/results?search_query=${q}`;
+  document.getElementById('m-gi').href = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(e.n+' gif')}`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('m-iframe').src = '';
+}
+document.getElementById('modal').addEventListener('click',e=>{
+  if(e.target.id==='modal') closeModal();
+});
+</script>
+</body>
+</html>
